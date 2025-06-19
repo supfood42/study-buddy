@@ -9,3 +9,7 @@ This project is licensed under the [CC BY-NC-ND 4.0 License](https://creativecom
 You may share the project for non-commercial purposes with attribution. Suggestions are welcome, but derivative works and commercial use are not permitted.
 
 #Just dont be a jerk
+
+##Required pip modules
+Oh boy i do have some news for u 
+ill write this later
