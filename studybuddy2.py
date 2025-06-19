@@ -1,7 +1,7 @@
-#Trying to fix text to speech, Elevenlabs upgraded
-#Yazhen Shi
-#June 17, 2025
-#Version: 0.2
+#Added Timer function, fixed scaling background, added encouragement and encouragemnet timer
+#Aaron Shi, Yazhen Shi
+#June 18, 2025
+#Version: 0.2.1
 
 # === System and GUI Imports ===
 import tkinter as tk
@@ -15,22 +15,27 @@ from openai import OpenAI
 import pyttsx3
 
 # === ElevenLabs (v2.x) API ===
-from elevenlabs import generate, play, set_api_key, Voice, VoiceSettings
+from elevenlabs.client import ElevenLabs
+
+#from elevenlabs.client import generate, play, api_key, Voice, VoiceSettings
 
 
 # === System Tools ===
 import os
 import sys
 
-set_api_key("sk_72a6d83c27b1d6119f688b03041b1e8a11a880feb7228b7e") # Defaults to ELEVEN_API_KEY
-
+#set_api_key("sk_72a6d83c27b1d6119f688b03041b1e8a11a880feb7228b7e") # Defaults to ELEVEN_API_KEY
+elevenlabs = ElevenLabs(
+  api_key="sk_72a6d83c27b1d6119f688b03041b1e8a11a880feb7228b7e",
+)
 #os.environ["ELEVEN_API_KEY"] = "sk_72a6d83c27b1d6119f688b03041b1e8a11a880feb7228b7e"
 
 # 🔑 API Keys
-openai_client = OpenAI(api_key="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")
+openai_client = OpenAI(api_key="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")
 
 # 📜 Load prompt from personality.txt
-with open("personality.txt", "r", encoding="utf-8") as f:
+#with open("test.txt", "x") as f:
+with open("C:\\Users\\Rushh\\source\\repos\\study-buddy\\personality.txt", "r", encoding="utf-8") as f:
     system_prompt = f.read()
 
 # 🎤 Voice function set to voice from eleven lab
@@ -115,9 +120,9 @@ canvas.grid(row=0, column=1, sticky="nsew")
 
 
 # Background image (load original)
-bg_img = Image.open("room.png")  # Keep original
-bg_photo = ImageTk.PhotoImage(bg_img)  # Temporary placeholder
-background = canvas.create_image(0, 0, anchor="nw", image=bg_photo)
+bg_img = Image.open(r"C:\Users\Rushh\source\repos\study-buddy\room.png")  # Keep original
+canvas.bg_photo = ImageTk.PhotoImage(bg_img)
+background = canvas.create_image(0, 0, anchor="nw", image=canvas.bg_photo)
 
 # Main frame (overlaid on canvas)
 overlay = tk.Frame(canvas, bg="#ffffff")
@@ -142,17 +147,26 @@ send_button = tk.Button(input_frame, text="Send", command=respond, font=("Delius
 send_button.pack(side="left", padx=5)
 
 # Resize handler
-def on_resize(event):
-    global bg_photo
-    # Resize the original image to match new canvas size
-    resized_img = bg_img.resize((event.width, event.height), Image.LANCZOS)
-    bg_photo = ImageTk.PhotoImage(resized_img)
-    canvas.itemconfig(background, image=bg_photo)
+def on_resize(event=None):
+    global background, overlay_window
+
+    if event is not None and hasattr(event, "width") and hasattr(event, "height"):
+        width = event.width
+        height = event.height
+    else:
+        root.update_idletasks()
+        width = canvas.winfo_width()
+        height = canvas.winfo_height()
+
+    resized_img = bg_img.resize((width, height), Image.LANCZOS)
+    canvas.bg_photo = ImageTk.PhotoImage(resized_img)
+    canvas.itemconfig(background, image=canvas.bg_photo)
+
     canvas.coords(background, 0, 0)
     canvas.coords(overlay_window, 0, 0)
-    canvas.config(width=event.width, height=event.height)
-
+    canvas.config(width=width, height=height)
 root.bind("<Configure>", on_resize)
+
 
 # ================================= FEATURES ===================================
 
@@ -169,24 +183,145 @@ def toggle_menu():
         menu_frame.config(width=40)
         menu_expanded = False
     else:
-        pomodoro_button.pack(pady=5)
+        timer_button.pack(pady=5)
         daynight_button.pack(pady=5)
         task_button.pack(pady=5)
         mood_button.pack(pady=5)
         encouragement_button.pack(pady=5)
         menu_frame.config(width=200)
         menu_expanded = True
+    root.after_idle(on_resize)
+
+
+
 
 menu_button = tk.Button(menu_frame, text="☰", font=("Arial", 12), command=toggle_menu)
 menu_button.pack(pady=10)
 
-# Focus Timer
-pomodoro_button = ttk.Menubutton(menu_frame, text="⏱️ Focus Timer")
-pomodoro_menu = tk.Menu(pomodoro_button, tearoff=0)
-for label in ["25", "45", "60"]:
-    pomodoro_menu.add_command(label=label, command=lambda l=label: print(f"[Timer] Start {l} focus session"))
-pomodoro_menu.add_command(label="📝 Custom", command=lambda: print("[Timer] Open custom input"))  # TODO: Add input popup
-pomodoro_button.config(menu=pomodoro_menu)
+
+# Global or canvas-attached storage for timer label and after IDs
+if not hasattr(canvas, "timer_label"):
+    canvas.timer_label = None
+if not hasattr(canvas, "timer_after_id"):
+    canvas.timer_after_id = None
+if not hasattr(canvas, "tick_after_id"):
+    canvas.tick_after_id = None
+
+#Focus Timer menu
+timer_button = ttk.Menubutton(menu_frame, text="⏱️ Focus Timer")
+timer_menu = tk.Menu(timer_button, tearoff=0)
+for label in ["1", "15", "30", "40", "60"]:
+    timer_menu.add_command(
+        label=f"{label} min timer",
+        command=lambda l=int(label): start_timer(l)
+    )
+timer_menu.add_command(label="📝 Custom", command=lambda: print("[Timer] Open custom input"))
+timer_button.config(menu=timer_menu)
+
+#Timer
+def display_timer(x, y, seconds):
+    # If a timer_text already exists, delete it first
+    if hasattr(canvas, "timer_text_id") and canvas.timer_text_id is not None:
+        canvas.delete(canvas.timer_text_id)
+        canvas.timer_text_id = None
+
+    # Create the text object on the canvas
+    timerSizeFactor = 12
+    textsize = canvas.winfo_width()//timerSizeFactor
+    canvas.timer_text_id = canvas.create_text(
+        x, y,
+        anchor="nw",
+        text="",
+        font=("Arial", textsize),
+        fill="black"
+    )
+
+    def update_timer(secs):
+        if secs > 0:
+            mins = secs // 60
+            sec = secs % 60
+            canvas.itemconfig(canvas.timer_text_id, text=f"{mins:02}:{sec:02}")
+            canvas.timer_after_id = canvas.after(1000, update_timer, secs - 1)
+        else:
+            canvas.itemconfig(canvas.timer_text_id, text="00:00")
+
+    update_timer(seconds)
+
+def start_timer(minutes):
+    total_seconds = minutes * 60
+
+    # Cancel any previous tick timers safely
+    if hasattr(canvas, "tick_after_id") and canvas.tick_after_id:
+        canvas.after_cancel(canvas.tick_after_id)
+        canvas.tick_after_id = None
+
+    # Cancel any previous display timers safely
+    if hasattr(canvas, "timer_after_id") and canvas.timer_after_id:
+        canvas.after_cancel(canvas.timer_after_id)
+        canvas.timer_after_id = None
+
+    # Destroy previous timer label if exists
+    if hasattr(canvas, "timer_label") and canvas.timer_label is not None:
+        canvas.timer_label.destroy()
+        canvas.timer_label = None
+
+    # Announce timer start in chat
+    chat_box.config(state="normal")
+    chat_box.insert(tk.END, f"\n{minutes} minute{'s' if minutes != 1 else ''} timer started.\n")
+    chat_box.config(state="disabled")
+    chat_box.see(tk.END)
+
+    canvas.update_idletasks()
+    x = canvas.winfo_width()*0.7
+    y = canvas.winfo_height()*0.75
+    display_timer(x, y, total_seconds)
+
+    def tick(secs):
+        if secs > 0:
+            canvas.tick_after_id = canvas.after(1000, tick, secs - 1)
+        else:
+            timer_end()
+
+    tick(total_seconds)
+
+
+def timer_end():
+    # Disable the entire focus timer menu
+    timer_button.config(state="disabled")
+
+    # Request encouragement from ChatGPT
+    prompt = "My focus timer just ended. Please give me a short, motivating encouragement message, reminding me to take a break. Adhere to your personality."
+    response = get_ai_response(prompt)
+
+    # Display message in chatbox
+    chat_box.config(state="normal")
+    chat_box.insert(tk.END, f"\n{response}\n")
+    chat_box.config(state="disabled")
+    chat_box.see(tk.END)
+    # Speak it out loud
+    speak(response)
+
+def killTimer():
+    # Cancel tick timer safely
+    if hasattr(canvas, "tick_after_id") and canvas.tick_after_id:
+        canvas.after_cancel(canvas.tick_after_id)
+        canvas.tick_after_id = None
+
+    # Cancel display timer safely
+    if hasattr(canvas, "timer_after_id") and canvas.timer_after_id:
+        canvas.after_cancel(canvas.timer_after_id)
+        canvas.timer_after_id = None
+
+    # Delete timer text if it exists
+    if hasattr(canvas, "timer_text_id") and canvas.timer_text_id is not None:
+        canvas.delete(canvas.timer_text_id)
+        canvas.timer_text_id = None
+
+    # Re-enable timer menu
+    timer_button.config(state="normal")
+
+    # Wait 10 seconds before killing timer
+    canvas.after(10000, killTimer)
 
 # Day/Night Toggle
 def toggle_day_night():
@@ -215,8 +350,17 @@ mood_button.config(menu=mood_menu)
 
 # Encouragement Button (temporary - will become passive every 20 min)
 def encouragement_popup():
+    encourage_prompt = "I've been learning for a while, please give me some words of encouragement. Keep it short, just a few words is enough to make my day."
     print("[Encourage] You got this! 💪")  # TODO: Replace with timed message from quotes.txt
+    response = get_ai_response(encourage_prompt)
 
+    # Display message in chatbox
+    chat_box.config(state="normal")
+    chat_box.insert(tk.END, f"\n{response}\n")
+    chat_box.config(state="disabled")
+    chat_box.see(tk.END)
+    # Speak it out loud
+    speak(response)
 encouragement_button = tk.Button(menu_frame, text="✨ Encourage", command=encouragement_popup)
 
 # === Respond Stub ===
@@ -229,6 +373,10 @@ def respond():
     chat_box.config(state="disabled")
     user_input.delete("1.0", tk.END)
 
-
-
+#Encouragement timer
+def start_encouragement_loop():
+    print("Encouragement timer started, loop 20 mins")
+    root.after(20 * 60 * 1000, lambda: [encouragement_popup(), start_encouragement_loop()])
+    
+start_encouragement_loop()
 root.mainloop()
