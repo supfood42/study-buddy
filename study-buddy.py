@@ -6,8 +6,11 @@
 # === System and GUI Imports ===
 import tkinter as tk
 from tkinter import ttk
+from ttkthemes import ThemedTk
 import tkinter.font as tkFont
-from tkinter import Label
+from tkinter import *
+from tkinter.ttk import *
+#from tkinter import Label
 from tkinter import simpledialog
 from PIL import Image, ImageTk  # Requires Pillow
 from PIL import ImageOps
@@ -142,7 +145,7 @@ def respond(event=None):
     user_input.delete("1.0", tk.END)
 
 # Root window
-root = tk.Tk()
+root = ThemedTk(theme="breeze")
 root.title("Study Buddy")
 root.geometry("400x300")
 root.minsize(200, 150)
@@ -199,7 +202,7 @@ user_input.pack(side="left", fill="x", expand=True)
 user_input.bind("<Return>", respond)
 user_input.bind("<Shift-Return>", lambda e: user_input.insert(tk.END, "\n"))
 
-send_button = tk.Button(input_frame, text="Send", command=respond, font=("DeliusSwashCaps-Regular",8))
+send_button = ttk.Button(input_frame, text="Send", command=respond)
 send_button.pack(side="left", padx=5)
 
 # Resize handler
@@ -266,7 +269,7 @@ def toggle_menu():
 
 #blah
 
-menu_button = tk.Button(menu_frame, text="☰", font=("Arial", 12), command=toggle_menu)
+menu_button = ttk.Button(menu_frame, text="☰", command=toggle_menu)
 menu_button.pack(pady=10)
 
 
@@ -409,19 +412,19 @@ def killTimer():
 # Day/Night Toggle
 def toggle_day_night():
     print("[Toggle] Day/Night mode switch")
-daynight_button = tk.Button(menu_frame, text="🌞/🌙", command=toggle_day_night)
+daynight_button = ttk.Button(menu_frame, text="🌞/🌙", command=toggle_day_night)
 
 # Task Input (Spotify)
 def open_task_entry():
     task_window = tk.Toplevel(root)
     task_window.title("What are you working on?")
-    tk.Label(task_window, text="Enter your task:").pack(pady=5)
-    task_entry = tk.Entry(task_window, width=30)
+    ttk.Label(task_window, text="Enter your task:").pack(pady=5)
+    task_entry = ttk.Entry(task_window, width=30)
     task_entry.pack(pady=5)
-    tk.Button(task_window, text="Submit", command=lambda: print(f"[Task] {task_entry.get()}"))
+    ttk.Button(task_window, text="Submit", command=lambda: print(f"[Task] {task_entry.get()}"))
     task_window.geometry("300x100")
 
-task_button = tk.Button(menu_frame, text="🎧 Task+Mood", command=open_task_entry)
+task_button = ttk.Button(menu_frame, text="🎧 Task+Mood", command=open_task_entry)
 
 # Mood Selector
 mood_button = ttk.Menubutton(menu_frame, text="😌 Mood")
@@ -444,7 +447,7 @@ def encouragement_popup():
     chat_box.see(tk.END)
     # Speak it out loud
     speak(response)
-encouragement_button = tk.Button(menu_frame, text="✨ Encourage", command=encouragement_popup)
+encouragement_button = ttk.Button(menu_frame, text="✨ Encourage", command=encouragement_popup)
 
 #Quote function
 def quote():
@@ -469,7 +472,7 @@ def quote():
     # Speak it out loud
     speak(formatted)
 #quote button
-quote_button = tk.Button(menu_frame, text="Quote", command=quote)
+quote_button = ttk.Button(menu_frame, text="Quote", command=quote)
 # === Respond Stub ===
 def respond():
     text = user_input.get("1.0", tk.END).strip()
