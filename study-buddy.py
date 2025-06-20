@@ -164,7 +164,7 @@ canvas.grid(row=0, column=1, sticky="nsew")
 
 
 # Background image (load original)
-bg_img = Image.open("resources\\room.jpg")  # Keep original
+bg_img = Image.open("resources\\room.png")  # Keep original
 
 
 # === CHARACTER SPRITE ===
@@ -223,13 +223,13 @@ def on_resize(event=None):
     canvas.config(width=width, height=height)
 
     # === Resize and center character ===
-    char_w = int(width * 0.3)
+    char_w = int(width * 0.4)
     char_h = int(character_original.height * (char_w / character_original.width))
     resized_char = character_original.resize((char_w, char_h), Image.LANCZOS)
     canvas.character_img = ImageTk.PhotoImage(resized_char)
     canvas.itemconfig(canvas.character_id, image=canvas.character_img)
 
-    char_x = width // 2
+    char_x = width // 1.2
     char_y = height - (char_h // 2) + 30
     canvas.coords(canvas.character_id, char_x, char_y)
 
