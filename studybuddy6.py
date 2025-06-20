@@ -261,7 +261,7 @@ def toggle_menu():
     root.after_idle(on_resize)
 
 
-
+#blah
 
 menu_button = tk.Button(menu_frame, text="☰", font=("Arial", 12), command=toggle_menu)
 menu_button.pack(pady=10)
