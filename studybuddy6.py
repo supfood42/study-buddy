@@ -443,6 +443,20 @@ def encouragement_popup():
     speak(response)
 encouragement_button = tk.Button(menu_frame, text="✨ Encourage", command=encouragement_popup)
 
+#Quote function
+def quote():
+    #read random quote from quotes.txt
+    with open("quotes.txt", "r", encoding="utf-8") as f:
+        quotes = [line.strip() for line in f if line.strip()]
+
+    selected_quote = random.choice(quotes)
+    # Display message in chatbox
+    chat_box.config(state="normal")
+    chat_box.insert(tk.END, f"\n{selected_quote}\n")
+    chat_box.config(state="disabled")
+    chat_box.see(tk.END)
+    # Speak it out loud
+    speak(selected_quote)
 # === Respond Stub ===
 def respond():
     text = user_input.get("1.0", tk.END).strip()
@@ -454,9 +468,16 @@ def respond():
     user_input.delete("1.0", tk.END)
 
 #Encouragement timer
+def start_quote_loop():
+    print("Quote timer started, loop 30 mins")
+    root.after(30 * 60 * 1000, lambda: [quote(), start_quote_loop()])
+    
+#Quotes timer
 def start_encouragement_loop():
     print("Encouragement timer started, loop 20 mins")
     root.after(20 * 60 * 1000, lambda: [encouragement_popup(), start_encouragement_loop()])
     
+
 start_encouragement_loop()
+start_quote_loop()
 root.mainloop()
