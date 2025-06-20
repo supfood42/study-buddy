@@ -164,11 +164,11 @@ canvas.grid(row=0, column=1, sticky="nsew")
 
 
 # Background image (load original)
-bg_img = Image.open("resources\\room.png")  # Keep original
+bg_img = Image.open("resources\\room.jpg")  # Keep original
 
 
 # === CHARACTER SPRITE ===
-character_original = Image.open("resources\\Study Buddy June18.png").convert("RGBA")  # Use your actual filename
+character_original = Image.open("resources\\character.png").convert("RGBA")  # Use your actual filename
 
 
 
