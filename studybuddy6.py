@@ -11,7 +11,9 @@ from tkinter import Label
 from tkinter import simpledialog
 from PIL import Image, ImageTk  # Requires Pillow
 from PIL import ImageOps
+#Python is total shit
 import threading
+import random #?????????????????
 # === AI and Voice APIs ===
 from openai import OpenAI
 import pyttsx3
@@ -256,6 +258,7 @@ def toggle_menu():
         task_button.pack(pady=5)
         mood_button.pack(pady=5)
         encouragement_button.pack(pady=5)
+        quote_button.pack(pady=5)
         menu_frame.config(width=200)
         menu_expanded = True
     root.after_idle(on_resize)
@@ -446,17 +449,27 @@ encouragement_button = tk.Button(menu_frame, text="✨ Encourage", command=encou
 #Quote function
 def quote():
     #read random quote from quotes.txt
-    with open("quotes.txt", "r", encoding="utf-8") as f:
-        quotes = [line.strip() for line in f if line.strip()]
+    with open("texts\\quotes.txt", "r", encoding="utf-8") as f:
+        lines = [line.strip() for line in f if "|" in line]
 
-    selected_quote = random.choice(quotes)
+    raw_quote = random.choice(lines)
+    text, author = raw_quote.split("|", 1)
+
+    # Randomly choose a display format
+    if random.choice([True, False]):
+        formatted = f'"{text}". That’s from {author}.'
+    else:
+        formatted = f'{author} once said: "{text}"'
+
     # Display message in chatbox
     chat_box.config(state="normal")
-    chat_box.insert(tk.END, f"\n{selected_quote}\n")
+    chat_box.insert(tk.END, f"\n{formatted}\n")
     chat_box.config(state="disabled")
     chat_box.see(tk.END)
     # Speak it out loud
-    speak(selected_quote)
+    speak(formatted)
+#quote button
+quote_button = tk.Button(menu_frame, text="Quote", command=quote)
 # === Respond Stub ===
 def respond():
     text = user_input.get("1.0", tk.END).strip()
