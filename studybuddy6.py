@@ -8,16 +8,12 @@ import tkinter as tk
 from tkinter import ttk
 import tkinter.font as tkFont
 from tkinter import Label
-from tkinter import simpledialog
 from PIL import Image, ImageTk  # Requires Pillow
 from PIL import ImageOps
 import threading
 # === AI and Voice APIs ===
 from openai import OpenAI
 import pyttsx3
-
-#Settings import
-import json
 
 # === ElevenLabs (v2.x) API ===
 
@@ -45,7 +41,7 @@ def load_api_keys(filepath):
                 keys[key.strip()] = value.strip()
     return keys
 
-api_keys = load_api_keys("texts\\api-keys.txt")
+api_keys = load_api_keys("api-keys.txt")
 
 # Use the keys
 openai_client = OpenAI(api_key=api_keys["OPENAI_API_KEY"])
@@ -59,30 +55,8 @@ client = ElevenLabs()
 
 # 📜 Load prompt from personality.txt
 #with open("test.txt", "x") as f:
-with open("texts\\personality.txt", "r", encoding="utf-8") as f:
+with open("personality.txt", "r", encoding="utf-8") as f:
     system_prompt = f.read()
-
-#Load settings
-
-def load_settings(path="config.json"):
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except FileNotFoundError:
-        print("[Config] config.json not found, using defaults.")
-        return {
-            "useEL": True,
-            "auto_encourage": True,
-            "encouragement_interval_minutes": 20,
-            "encourage_after_timer": True
-        }
-
-def save_settings(settings, path="config.json"):
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(settings, f, indent=4)
-
-# Load config once
-settings = load_settings()
 
 # 🎤 Voice function set to voice from eleven lab
 
@@ -143,7 +117,7 @@ def respond(event=None):
 root = tk.Tk()
 root.title("Study Buddy")
 root.geometry("400x300")
-root.minsize(200, 150)
+root.minsize(100, 150)
 
 # Load your custom font
 font_path = "DeliusSwashCaps-Regular.ttf"
@@ -162,11 +136,11 @@ canvas.grid(row=0, column=1, sticky="nsew")
 
 
 # Background image (load original)
-bg_img = Image.open("resources\\room.png")  # Keep original
+bg_img = Image.open("room.jpg")  # Keep original
 
 
 # === CHARACTER SPRITE ===
-character_original = Image.open("resources\\Study Buddy June18.png").convert("RGBA")  # Use your actual filename
+character_original = Image.open("Transparency.png").convert("RGBA")  # Use your actual filename
 
 
 
@@ -221,7 +195,7 @@ def on_resize(event=None):
     canvas.config(width=width, height=height)
 
     # === Resize and center character ===
-    char_w = int(width * 0.3)
+    char_w = int(width * 0.4)
     char_h = int(character_original.height * (char_w / character_original.width))
     resized_char = character_original.resize((char_w, char_h), Image.LANCZOS)
     canvas.character_img = ImageTk.PhotoImage(resized_char)
@@ -261,7 +235,7 @@ def toggle_menu():
     root.after_idle(on_resize)
 
 
-#blah
+
 
 menu_button = tk.Button(menu_frame, text="☰", font=("Arial", 12), command=toggle_menu)
 menu_button.pack(pady=10)
@@ -283,12 +257,7 @@ for label in ["1", "15", "30", "40", "60"]:
         label=f"{label} min timer",
         command=lambda l=int(label): start_timer(l)
     )
-timer_menu.add_command(label="📝 Custom", command=lambda: (
-        (lambda mins: start_timer(mins) if mins else None)(
-            simpledialog.askinteger("Custom Timer", "Enter number of minutes:", minvalue=1, maxvalue=300)
-        )
-    )
-)
+timer_menu.add_command(label="📝 Custom", command=lambda: print("[Timer] Open custom input"))
 timer_button.config(menu=timer_menu)
 
 #Timer
@@ -443,20 +412,6 @@ def encouragement_popup():
     speak(response)
 encouragement_button = tk.Button(menu_frame, text="✨ Encourage", command=encouragement_popup)
 
-#Quote function
-def quote():
-    #read random quote from quotes.txt
-    with open("quotes.txt", "r", encoding="utf-8") as f:
-        quotes = [line.strip() for line in f if line.strip()]
-
-    selected_quote = random.choice(quotes)
-    # Display message in chatbox
-    chat_box.config(state="normal")
-    chat_box.insert(tk.END, f"\n{selected_quote}\n")
-    chat_box.config(state="disabled")
-    chat_box.see(tk.END)
-    # Speak it out loud
-    speak(selected_quote)
 # === Respond Stub ===
 def respond():
     text = user_input.get("1.0", tk.END).strip()
@@ -468,16 +423,9 @@ def respond():
     user_input.delete("1.0", tk.END)
 
 #Encouragement timer
-def start_quote_loop():
-    print("Quote timer started, loop 30 mins")
-    root.after(30 * 60 * 1000, lambda: [quote(), start_quote_loop()])
-    
-#Quotes timer
 def start_encouragement_loop():
     print("Encouragement timer started, loop 20 mins")
     root.after(20 * 60 * 1000, lambda: [encouragement_popup(), start_encouragement_loop()])
     
-
 start_encouragement_loop()
-start_quote_loop()
 root.mainloop()
