@@ -2,5 +2,7 @@
     "use_eleven_labs":true,
     "auto_encourage": true,
     "encouragement_interval_minutes": 20,
-    "encourage_after_timer":true
+    "encourage_after_timer":true,
+    "auto_quote":true,
+    "quote_interval_minutes":30
 }
